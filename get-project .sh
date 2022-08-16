@@ -3,7 +3,7 @@
 # Take this file and copy it to your Venus GX device (Mine is Raspberry Pi)
 # For example you can do that by :
 # nano get-project.sh
-# Cut and past this text into the nanao window
+# Cut and past this text into the nano window
 # CTRL o to save the file
 # CTRL x to exit nano
 # chmod +x get-project.sh
