@@ -19,4 +19,4 @@ label "Temperature input 1"
 temp 5
  
 label "Temperature input 2"
-temp 3
+temp 3 
