@@ -6,11 +6,11 @@ In this repository you will find a number of Dbus services for Victron Venus OS.
 
 This includes services for:
 
- Native (or innate) data - such as the temperature of the CPU when running on an Rpi.
- A service for monitoring engine hours based on detected alternator output
- i2C devices - such as voltage (including a tank level sensor), temperature and humidity.
- 1-wire devices - Temperature and Relay drivers.
- Remote device support - data collected using a JSON data exchanges with a separate server.
+  Native (or innate) data - such as the temperature of the CPU when running on an Rpi.
+  A service for monitoring engine hours based on detected alternator output
+  i2C devices - such as voltage (including a tank level sensor), temperature and humidity.
+  1-wire devices - Temperature and Relay drivers.
+  Remote device support - data collected using a JSON data exchanges with a separate server.
 
 This is all based on my original Venus Dbus Service
 https://github.com/LHardwick-git/Victron-Service
