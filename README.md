@@ -26,7 +26,7 @@ Separating out the different services you can install just the ones you need.
 The additional adc Dbus services used to access the spare 3 analogue interfaces on an mcp3208 are no longer required
 Venus OS now has the option to support the additional interfaces by modifying the /etc/venus/dbus-adc.conf file.
 
-I'll add installation notes fro Venus Os 2.8 as the installation of new services has changed from previous Venus versions.
+I'll add installation notes for Venus OS 2.8 as the installation of new services has changed from previous Venus versions.
       
 Hope this all works for you
     
