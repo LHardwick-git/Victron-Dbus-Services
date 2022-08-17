@@ -102,7 +102,7 @@ settingDefaults = {'/CustomName'        : ['Engine Hours', 0, 0],
                    '/Type'              : [1, 0, 6],
                    '/Multiplier'        : [0.001, 0, 10],
                    '/AlarmSetting'      : [0, 0, 1],
-                   '/Count'             : [1.1, 0, 300],
+                   '/Count'             : [1.1, 0, 300000],
                    '/Aggregate'         : [0.0, 0, 100000]
                    }
 
