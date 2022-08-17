@@ -1,0 +1,4 @@
+Copy the configuration file to /etc/venus/dbus-adc.conf
+to enable analogue interfaces on Rpi
+See
+https://community.victronenergy.com/questions/95267/help-analog-inputs-blank-rpi3.html

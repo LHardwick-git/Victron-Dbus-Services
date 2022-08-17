@@ -1,0 +1,22 @@
+device    adc/builtin0
+vref 1.8
+scale 4095
+ 
+product 0xa161
+ 
+label "Tank Level input 1"
+tank 4
+ 
+label "Tank Level input 2"
+tank 6
+ 
+label "Tank Level input 3"
+tank 2
+ 
+product 0xa162
+ 
+label "Temperature input 1"
+temp 5
+ 
+label "Temperature input 2"
+temp 3
