@@ -1,0 +1,2 @@
+# Copy this file to rc.local or add the following line if you have an rc.local
+/data/gps-time.sh > /var/log/gps-date &
