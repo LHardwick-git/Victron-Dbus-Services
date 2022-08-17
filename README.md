@@ -6,7 +6,7 @@ In this repository you will find a number of Dbus services for Victron Venus OS.
 
 This includes services for:
 
-Native (or innate) date - such as the temperature of the CPU when running on an Rpi.
+Native (or innate) data - such as the temperature of the CPU when running on an Rpi.
    Also a service for monitoring engine hours based on detected alternator output
 i2C devices - such as voltage (including a tank level sensor), temperature and humidity.
 1-wire devices - Temperature and Relay drivers.
