@@ -21,4 +21,5 @@ mv Victron-Dbus-Services-main Victron-Dbus-Services
 rm master.zip
 find . -name '*.sh' -type f -exec chmod +x {} +
 find . -name 'run' -type f -exec chmod +x {} +
+find . -name '*.py' -type f -exec chmod +x {} +
 chmod u+x Victron-Dbus-Services/Rpi-GPS-time/rc.local
