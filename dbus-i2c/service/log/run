@@ -1,0 +1,2 @@
+exec 2>&1
+exec multilog t s99999 n8 /var/log/dbus-i2c
