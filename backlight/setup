@@ -1,0 +1,4 @@
+mv /etc/venus/headless /etc/venus/headless.off
+echo "/sys/class/backlight/rpi_backlight/bl_power" > /etc/venus/blank_display_device
+echo "/sys/class/backlight/rpi_backlight" > /etc/venus/backlight_device
+mv rpi-backlight-overlay.dtb /u-boot/overlays
