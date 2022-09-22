@@ -10,8 +10,12 @@
 #                                   MbOption { description: qsTr("Hours"); value: 4 }
 #   in PagePulseCounterSetup.qml   **** dont forget the comma on the line before
 #   change to ->         property variant units: ["m<sup>4</sup>", "L", "gal", "gal", " Hours"]
-#   change decimals on the agregate output form 0 to 1 #
-#   in PagePulseCounter.qml (change 3 to 4 and add hours)
+#   change decimals on the agregate output from 0 to 1 #
+#   in PagePulseCounter.qml (change 3 to 4 and add hours) on this line like this
+#   property variant units: ["m<sup>4</sup>", "L", "gal", "gal"," hours"]
+
+#   change value: itemCount.value
+#   to value: itemCount.value.toFixed(1)
 
 
 # If edditing then use 
@@ -45,6 +49,8 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 from vedbus import VeDbusService, VeDbusItemExport, VeDbusItemImport 
 from settingsdevice import SettingsDevice  # available in the velib_python repository
 
+debug = False
+
 def update():
 #
     update_engine()
@@ -52,15 +58,22 @@ def update():
 
 def update_engine():
 #   only increment time if the service is configured as connected by setting it as a pulse counter
-    if dbus_engine['/Connected'] == 1:
-        incremented = round(((settings['/Settings/DigitalInput/6/Aggregate'] * 100) +1 )/100,2)
-#       This increments the setting which comes via the callback to update the service copy
-#       so no need to update it twice
-        
-        settings['/Settings/DigitalInput/6/Aggregate'] = incremented
-        settings['/Settings/DigitalInput/6/Count'] += 0.01
+#   check if DC system is producing energy and if it is engine is connected
+#   if DC system not producing energy engine is disconnected
 
-# enable us to read settings raw (not through interfce)
+    if dbus_engine['/Connected'] == 1:
+        power = alternator._proxy.GetValue()
+        if power < 0:
+            incremented = round(((settings['/Settings/DigitalInput/6/Aggregate'] * 100) +1 )/100,2)
+#           This increments the setting which comes via the callback to update the service copy
+#           so no need to update it twice
+            if debug:
+                logging.info('DC system exporting %s power engine hours incrementing' % (power)) 
+            settings['/Settings/DigitalInput/6/Aggregate'] = incremented
+            settings['/Settings/DigitalInput/6/Count'] = round(((settings['/Settings/DigitalInput/6/Count'] * 100) +1 )/100,2)
+        else:
+            if debug:
+                logging.info('DC system consuming %s power engine not running' % (power))
 
 class SystemBus(dbus.bus.BusConnection):
     def __new__(cls):
@@ -77,6 +90,9 @@ DBusGMainLoop(set_as_default=True)
 dBusConn = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
 
 serviceSettings  = VeDbusItemImport(dBusConn, "com.victronenergy.settings" , "/Settings/DigitalInput/6").get_value()
+
+alternator = VeDbusItemImport(dBusConn, 'com.victronenergy.system', '/Dc/System/Power')
+print (alternator.get_value())
 
 # =========================== Start of settings interface ================
 #  The settings interface handles the persistent storage of changes to settings
@@ -149,12 +165,9 @@ def addSetting(base, path, dBusObject):
     global newSettings
     global settingDefaults
     setting = (base + path).replace('Pulsemeter', 'DigitalInput') # Strangly the confiiguration for the pulse meter is "DigitalInput"
-    if path in serviceSettings:
-        logging.info("Setting alrady exists for "+path)
-    else:
-        logging.info(" ".join(("Add setting", setting, str(settingDefaults[path]) )) )
-        newSettings[setting] = [setting] + settingDefaults[path] # Add the setting to the list to be created
-    settingObjects[setting] = [path, dBusObject] 
+    logging.info(" ".join(("Add setting", setting, str(settingDefaults[path]) )) )
+    settingObjects[setting] = [path, dBusObject]
+    newSettings[setting] = [setting] + settingDefaults[path] # Add the setting to the list to be created
 
 # initSettings is called when all the required settings have been added
 def initSettings(newSettings):

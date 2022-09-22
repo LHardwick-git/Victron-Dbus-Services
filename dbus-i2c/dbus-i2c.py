@@ -55,7 +55,6 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 from vedbus import VeDbusService, VeDbusItemExport, VeDbusItemImport 
 from settingsdevice import SettingsDevice  # available in the velib_python repository
 
-
 dbusservice = None
 
 #=========================================
@@ -63,11 +62,15 @@ dbusservice = None
 #   basically the bits the modeul does not do for us
 
 ads1015 = ADS1015()
-ads1015.channels = ['in0/gnd','in1/gnd','in2/gnd','in3/gnd']
+#ads1015.channels = ['in0/gnd','in1/gnd','in2/gnd','in3/gnd']
+ads1015.channels = ['in0/gnd']
 ads1015.offset =  0.002
 ads1015.multiplier = 9.12/0.9
 ads1015.debug = True
 WASTE_FLUIDS = ( 2, 5)
+
+am2320 = AM2320(1)
+am2320.debug = False
 
 def device_detect(device):
     global chip_type
@@ -104,38 +107,34 @@ def update():
 #
 # So the only service left running is the Raspberry pi CPU temperature.
 #
-     update_i2c()
+     update_am2320()
      update_ads1015()
-#    call to update adc readings removed
-#    from Veus 2.8 onwards configure additional adc channels in /etc/venus/dbus-adc.conf instead
-#    update_remote()
      return True
 
 # update i2c am2320 interface values
 #  ***********************************************************************************
 #  *   this all needs changing for the case where the i2c bus is there but no AM2320 *
 #  ***********************************************************************************
-def update_i2c():
-#    if not os.path.exists('/dev/i2c-1'):
-#        if dbusservice['i2c-temp']['/Connected'] != 0:
-#            logging.info("i2c interface disconnected")
-#            dbusservice['i2c-temperature']['/Connected'] = 0
-#        logging.info("i2c bus not available")
-#    else:
-#        am2320 = AM2320(1)
-#        (t,h,e, report) = am2320.readSensor()
-        (t, h, e, report) = (25, 50, 0, "")
+def update_am2320():
+    if not os.path.exists('/dev/i2c-1'):
+        if dbusservice['i2c-temp']['/Connected'] != 0:
+            logging.info("i2c-temperature  device disconnected")
+            dbusservice['i2c-temperature']['/Connected'] = 0
+        logging.info("i2c bus not available")
+    else:
+        (t,h,e, report) = am2320.readSensor()
 #       Returns temperature, humidity, error status, and text report
         if e != 0:
-            logging.info("Error in i2c bus read, "+ report)
+            logging.info("Error in i2c-temperature bus read, "+ report)
             dbusservice['i2c-temp']['/Status'] = e
             dbusservice['i2c-temp']['/Temperature'] = []
         else:
              if dbusservice['i2c-temp']['/Connected'] != 1:
-                logging.info("i2c AM2320 bus device connected")
+                logging.info("i2c-temperature AM2320 bus device connected")
                 dbusservice['i2c-temp']['/Connected'] = 1
                 dbusservice['i2c-temp']['/Status'] = 0
-             logging.info("values now are temperature %s, humidity %s" % (t, h))
+             if am2320.debug:
+                 logging.info("values now are temperature %s, humidity %s" % (t, h))
              dbusservice['i2c-temp']['/Temperature'] = t
              dbusservice['i2c-temp']['/Humidity'] = h
 
@@ -153,7 +152,8 @@ def calculate_remaining (percent, capacity, type=0):
         return capacity * percent/100
 
 def update_ads1015():
-    logging.info("updating ads1015 values")
+    if ads1015.debug:
+        logging.info("updating ads1015 values")
     tank_object = dbusservice['adc-tank1']
     for channel in ads1015.channels:
            if chip_type:
@@ -161,22 +161,30 @@ def update_ads1015():
                    voltage = ads1015.get_voltage(channel=channel)
                    voltage = max (0, voltage - ads1015.offset)
                    voltage = round (voltage * ads1015.multiplier, 2)
-                   tank_object['/Connected'] = 1
                    tank_object['/RawValue'] = voltage
-#                  level = Capacity * (V - Ve)/ (Vf - Ve)
-                   level = calculate_level(voltage, tank_object['/RawValueEmpty'], tank_object['/RawValueFull']) 
-                   if ads1015.debug:
-                       logging.info("Readings are channel %s voltage %s level %s" % (channel, voltage, level))
-                   tank_object['/Level'] = level
-                   tank_object['/Remaining'] = calculate_remaining (level, tank_object['/Capacity'], tank_object['/FluidType'])
+#        Zero voltage or low volatage reading mean tank device has been switched off
+                   if voltage > tank_object['/RawValueEmpty']/2:
+                       if tank_object['/Connected'] != 1:
+                           tank_object['/Connected'] = 1
+                           logging.info("i2c-adc ads1015 bus device connected")
+                       level = calculate_level(voltage, tank_object['/RawValueEmpty'], tank_object['/RawValueFull']) 
+                       if ads1015.debug:
+                           logging.info("Readings are channel %s voltage %s level %s" % (channel, voltage, level))
+                       tank_object['/Level'] = level
+                       tank_object['/Remaining'] = calculate_remaining (level, tank_object['/Capacity'], tank_object['/FluidType'])
+                   else:
+                       if tank_object['/Connected'] != 0:
+                           tank_object['/Connected'] = 0
+                           logging.info("i2c-adc ads1015 is disconnected or low voltage")
                except IOError as e:
                    if ads1015.debug: 
                        logging.info("Unable to read value, with error %s" % (e))
            else:
-               logging.info("ads1015 is disconnected")
+               logging.info("i2c-adc ads1015 is disconnected")
+               tank_object['/Connected'] = 0
 
 def update_remote():
-#   thisis a stub to test collecting readings from remote json interface
+#   this is a stub to test collecting readings from remote json interface
     base = 'http://192.168.1.176:8080'
     action = '/ping-temp'
     try:
@@ -210,8 +218,8 @@ settingDefaults = {'/Offset': [0, -10, 10],
                    '/TemperatureType'   : [0, 0, 3],
                    '/CustomName'        : ['fred', 0, 0],
                    '/FluidType'         : [0, 0, 6],
-                   '/RawValueEmpty'     : [3, -3, 3],
-                   '/RawValueFull'	: [10, -10, 10],
+                   '/RawValueEmpty'     : [4, 0, 5],
+                   '/RawValueFull'	: [9, 0, 10],
                    '/Capacity'          : [1.0, -10,  10],
                    '/Standard'          : [0, 0, 3]
 }

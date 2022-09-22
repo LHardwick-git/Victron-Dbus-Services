@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if ! pgrep -f "dbus-i2c.py" >/dev/null; then
+if ! pgrep -f "dbus-i2c.py" ; then
     echo "process not found"
   else
     echo "process running"
