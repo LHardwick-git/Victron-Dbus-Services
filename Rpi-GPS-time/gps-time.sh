@@ -29,14 +29,14 @@ N=0
 # check if GPS has FIX
 LINE1='^\$..GGA,[0-9\.]+,[0-9\.]+,[NS],[0-9\.]+,[EW],([0-2])'
 # Catch lines with date and time info
-LINE2='^\$GPRMC'
+LINE2='^\$..RMC'
 
 FIX=""
 
 # extract date and time from GPS packet
 
 function extract {
-[[ $1 =~ ^\$GPRMC,([0-9]{4})([0-9]{2})\.[0-9]{2},.,[0-9\.]+,[NS],[0-9\.]+,[EW],[0-9\.]*,[0-9\.]*,([0-9]{2})([0-9]{2})([0-9]{2}), ]]
+[[ $1 =~ ^\$..RMC,([0-9]{4})([0-9]{2})\.[0-9]{2},.,[0-9\.]+,[NS],[0-9\.]+,[EW],[0-9\.]*,[0-9\.]*,([0-9]{2})([0-9]{2})([0-9]{2}), ]]
   echo "foound this"
   COMMAND="20${BASH_REMATCH[5]}${BASH_REMATCH[4]}${BASH_REMATCH[3]}${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
   echo command is $COMMAND
